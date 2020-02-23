@@ -1,8 +1,8 @@
-## app
+## mysql server
 
-## web
+## nginx server
 
-## db
+## php-fpm server
 
 ## docker-compose
 
