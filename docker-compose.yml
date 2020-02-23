@@ -1,0 +1,73 @@
+version: '3.6'
+services:
+
+### PHP-FPM ##############################################
+  php-fpm:
+    build:
+      context: ./php-fpm/
+      args:
+        - TIME_ZONE=${TIME_ZONE}
+        - PHP_VERSION=${PHP_VERSION}
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - UBUNTU_SOURCE=${UBUNTU_SOURCE}
+        - COMPOSER_SOURCE=${COMPOSER_SOURCE}
+        - COMPOSER_PHAR_SOURCE=${COMPOSER_PHAR_SOURCE}
+    # restart: always
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+    expose:
+      - "9000"
+    working_dir: ${APP_CODE_PATH_CONTAINER}
+    command: php-fpm
+
+### NGINX SERVER ##############################################
+  nginx:
+    build:
+      context: ./nginx/
+      args:
+        - TIME_ZONE=${TIME_ZONE}
+        - NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+        - NGINX_PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+    # restart: always
+    # depends_on:
+    #   - php-fpm
+    #   - mysql
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites
+    depends_on:
+      - php-fpm
+    networks:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    command: [nginx, '-g', 'daemon off;']
+
+### MYSQL ##############################################
+  mysql:
+    build:
+      context: ./mysql
+      args:
+        - TIME_ZONE=${TIME_ZONE}
+    # restart: always
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    networks:
+      - backend
+    ports:
+      - "${MYSQL_PORT}:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    # command: mysqld
+
+networks:
+  backend:
+    driver: bridge
