@@ -1,4 +1,5 @@
-FROM nginx:1.12
+ARG NGINX_VERSION
+FROM nginx:${NGINX_VERSION}
 
 # 从 .env 文件中定义的变量
 ARG TIME_ZONE

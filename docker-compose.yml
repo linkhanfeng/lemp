@@ -1,5 +1,35 @@
 version: '3.6'
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+
 services:
+### Workspace ##################################
+  workspace:
+    build:
+      context: ./workspace
+      args:
+        - TIME_ZONE=${TIME_ZONE}
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - UBUNTU_SOURCE=${UBUNTU_SOURCE}
+        - COMPOSER_SOURCE=${COMPOSER_SOURCE}
+        - PHP_VERSION=${PHP_VERSION}
+        - WORKSPACE_INSTALL_NODE=${WORKSPACE_INSTALL_NODE}
+        - WORKSPACE_NODE_VERSION=${WORKSPACE_NODE_VERSION}
+        - WORKSPACE_NVM_NODEJS_ORG_MIRROR=${WORKSPACE_NVM_NODEJS_ORG_MIRROR}
+        - WORKSPACE_NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
+        - WORKSPACE_INSTALL_VUE_CLI=${WORKSPACE_INSTALL_VUE_CLI}
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+      - frontend
+    working_dir: ${APP_CODE_PATH_CONTAINER}
+    tty: true
+    # command:
 
 ### PHP-FPM ##############################################
   php-fpm:
@@ -12,9 +42,16 @@ services:
         - UBUNTU_SOURCE=${UBUNTU_SOURCE}
         - COMPOSER_SOURCE=${COMPOSER_SOURCE}
         - COMPOSER_PHAR_SOURCE=${COMPOSER_PHAR_SOURCE}
+        - PHP_FPM_PECL_PATH=${PHP_FPM_PECL_PATH}
+        - PHP_FPM_INSTALL_COMPOSER=${PHP_FPM_INSTALL_COMPOSER}
+        - PHP_FPM_INSTALL_PDO_MYSQL=${PHP_FPM_INSTALL_PDO_MYSQL}
+        - PHP_FPM_INSTALL_GD=${PHP_FPM_INSTALL_GD}
+        - PHP_FPM_INSTALL_BCMATH=${PHP_FPM_INSTALL_BCMATH}
+        - PHP_FPM_INSTALL_PHPREDIS=${PHP_FPM_INSTALL_PHPREDIS}
     # restart: always
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ./php-fpm/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
     networks:
       - backend
     expose:
@@ -30,17 +67,19 @@ services:
         - TIME_ZONE=${TIME_ZONE}
         - NGINX_PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
         - NGINX_PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+        - NGINX_VERSION=${NGINX_VERSION}
     # restart: always
-    # depends_on:
-    #   - php-fpm
-    #   - mysql
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${NGINX_SITES_PATH}:/etc/nginx/sites
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
     depends_on:
       - php-fpm
     networks:
       - backend
+    expose:
+      - "80"
+      - "443"
     ports:
       - "80:80"
       - "443:443"
@@ -52,6 +91,7 @@ services:
       context: ./mysql
       args:
         - TIME_ZONE=${TIME_ZONE}
+        - MYSQL_VERSION=${MYSQL_VERSION}
     # restart: always
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -60,14 +100,29 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
       - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
-      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+      - ${MYSQL_CONFIG_PATH}:/etc/mysql/my.cnf
     networks:
       - backend
+    expose:
+      - "3306"
     ports:
       - "${MYSQL_PORT}:3306"
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    # command: mysqld
+    command: mysqld
 
-networks:
-  backend:
-    driver: bridge
+### Redis ################################################
+  redis:
+    build:
+      context: ./redis
+      args:
+        - TIME_ZONE=${TIME_ZONE}
+        - REDIS_VERSION=${REDIS_VERSION}
+    volumes:
+      - ${DATA_PATH_HOST}/redis:/data
+      - ${REDIS_CONFIG_PATH}:/usr/local/etc/redis/redis.conf
+    networks:
+      - backend
+    expose:
+      - "6379"
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
