@@ -15,8 +15,12 @@
 # lemp doc
 
 ## 开始
-1.  配置文件在 .env
-2.  `cd /path/to/lemp && docker-compose up -d`
+1.  cd /path/to/lemp
+2.  cp app ../
+3.  `cd /path/to/lemp && docker-compose up -d`
+4.  docker-compose exec workspace
+5.  cd app/ && composer install
+6.  宿主机中访问 app.test
 
 ## services
 
