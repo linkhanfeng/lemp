@@ -15,12 +15,11 @@
 # lemp doc
 
 ## 开始
-1.  cd /path/to/lemp
-2.  cp app ../
-3.  `cd /path/to/lemp && docker-compose up -d`
-4.  docker-compose exec workspace
-5.  cd app/ && composer install
-6.  宿主机中访问 app.test
+
+1.  复制app并启动服务: `cd /path/to/lemp && cp app ../ && docker-compose up -d`
+2.  进入容器: `docker-compose exec workspace bash`
+5.  在容器中运行 composer: `cd app/ && composer install`
+6.  宿主机中访问 127.0.0.1 (或者将 app.test 加入host文件)
 
 ## services
 
@@ -67,3 +66,7 @@ docker cp /path mycontainer:/path
 rm -fr ~/.lemp/*
 rm -fr lemp/logs/*
 ```
+window 系统需要注意的问题
+
+1.  docker 需要 Shared Drives
+2.  端口占用问题
