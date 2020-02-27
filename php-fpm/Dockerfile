@@ -94,7 +94,7 @@ RUN if [ ${PHP_FPM_INSTALL_COMPOSER} = true ]; then \
     curl -sL -o /usr/local/bin/composer $COMPOSER_PHAR_SOURCE && \
     chmod 751 /usr/local/bin/composer && \
     composer config -g repo.packagist composer $COMPOSER_SOURCE && \
-    composer config -gl | grep repositories
+    composer config -gl | grep repositories \
 ;fi
 
 # 清理 apt
