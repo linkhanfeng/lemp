@@ -83,12 +83,15 @@ RUN if [ ${WORKSPACE_NPM_REGISTRY} ]; then \
     . ~/.bashrc 2>/dev/null && npm config set registry ${WORKSPACE_NPM_REGISTRY} \
 ;fi
 
-# USER root
+### 复制私钥 生产环境需要删除 #################################################
+ARG WORKSPACE_COPY_SSH_KEY
+COPY ./.ssh /tmp/.ssh
+RUN if [ ${WORKSPACE_COPY_SSH_KEY} = true ]; then \
+    cp -rf /tmp/.ssh /root/ \
+    && chmod 400 /root/.ssh/id_rsa && echo "Host github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config \
+;fi
 
-# # Clean up
-# RUN apt-get clean && \
-#     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-#     rm /var/log/lastlog /var/log/faillog
-
-# # Set default work directory
-# WORKDIR /var/www
+# Clean up
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    rm /var/log/lastlog /var/log/faillog

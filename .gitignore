@@ -1,6 +1,8 @@
 /logs
 /data
+/app/vendor
+
+/workspace/.ssh/*
 .env
 
 .DS_Store
-/app/vendor

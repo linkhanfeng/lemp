@@ -16,10 +16,13 @@
 
 ## 开始
 
-1.  复制app并启动服务: `cd /path/to/lemp && cp app ../ && docker-compose up -d`
-2.  进入容器: `docker-compose exec workspace bash`
-5.  在容器中运行 composer: `cd app/ && composer install`
-6.  宿主机中访问 127.0.0.1 (或者将 app.test 加入host文件)
+1.  复制并启动服务:
+    `cd /path/to/lemp && cp app ../ && docker-compose up -d`
+2.  进入容器:
+    `docker-compose exec workspace bash`
+3.  在容器中运行 composer:
+    `cd app/ && composer install`
+4.  宿主机中访问 127.0.0.1 (或者将 app.test 加入host文件)
 
 ## services
 
